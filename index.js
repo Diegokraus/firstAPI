@@ -1,22 +1,27 @@
 const http = require('http')
-
+const {URL} = require('url')
 
 const routes = require('./routes')
 
 const server = http.createServer((request, response)=> {
-    console.log(`Request method: ${request.method} | Endpoint: ${request.url}`)
+    const parseUrl = new URL(`http://localhost:3330${request.url}`)
+
+
+    console.log(`Request method: ${request.method} | Endpoint: ${parseUrl.pathname}`)
 
     const route = routes.find((routeObj)=>{
-        return routeObj.endpoint === request.url && routeObj.method === request.method
+        return routeObj.endpoint === parseUrl.pathname && routeObj.method === request.method
     })
 
     if(route){
+        request.query = Object.fromEntries(parseUrl.searchParams)
+        
         route.handler(request, response)
     }else{
         response.writeHead(404, {'Content-Type': 'text/html'})
-        response.end(`Cannot ${request.method} ${request.url}`)
+        response.end(`Cannot ${request.method} ${parseUrl.pathname}`)
     }
 
 })
 
-server.listen(3333, () => console.log('Server started at http://localhost:3333'))
+server.listen(3330, () => console.log('Server started at http://localhost:3330'))
